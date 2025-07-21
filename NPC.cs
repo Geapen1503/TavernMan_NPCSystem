@@ -5,12 +5,16 @@ using UnityEngine;
 public abstract class NPC : MonoBehaviour
 {
     //public string id;
+    public Rigidbody rigidBody;
     public Animator animator;
     public NPCAnchor defaultAnchor;
     public string defaultAnimation = "TPose";
+    public CapsuleCollider npcCollider;
+    public AudioSource npcAudioSource;
 
     void Start()
     {
+        CheckIfPlayerValid();
         InitializeNPC(defaultAnchor);
     }
 
@@ -40,5 +44,15 @@ public abstract class NPC : MonoBehaviour
     public void PlayAnimation(string animationName)
     {
         if (animator != null && !string.IsNullOrEmpty(animationName)) animator.SetTrigger(animationName);
+    }
+
+    public void ResizeColliderForAnimation()
+    {
+
+    }
+    
+    public void CheckIfPlayerValid()
+    {
+        if (!animator || !npcCollider || !rigidBody || !npcAudioSource) Debug.LogError($"{name}: Missing required NPC component(s).");
     }
 }
