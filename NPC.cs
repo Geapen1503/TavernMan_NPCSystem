@@ -17,6 +17,8 @@ public abstract class NPC : MonoBehaviour
     [Header("Interaction Settings")]
     public bool isTalkable = true;
     public BoxCollider dialogDetectorCol;
+    public DialogueAnchor dialogueAnchor;
+    public PlayerDialAnchor playerDialAnchor;
 
     private bool isPlayerInRange = false;
 
@@ -62,7 +64,21 @@ public abstract class NPC : MonoBehaviour
     public void TriggerDialog()
     {
         if (!isTalkable) return;
+        StartCoroutine(TriggerDialogRoutine());
+    }
+
+    private IEnumerator TriggerDialogRoutine()
+    {
         Debug.Log($"{name}: NPC's Talking!");
+
+        DialogueUIManager.Instance.MoveCanvasToNPC(dialogueAnchor);
+
+        var playerInput = Invector.vCharacterController.vThirdPersonInput.Instance;
+        if (playerInput != null)
+            yield return StartCoroutine(playerInput.FreezeInputsAndMoveToAnchor(playerDialAnchor));
+
+        var playerCam = FPCam.Instance;
+        if (playerCam != null) playerCam.EnterDialogueMode();
     }
 
     void OnTriggerEnter(Collider other)
@@ -111,10 +127,9 @@ public abstract class NPC : MonoBehaviour
             Debug.LogError($"{name}: Missing required NPC component(s).");
         }
 
-        if (isTalkable && !dialogDetectorCol)
-        {
-            Debug.LogWarning($"{name}: Talkable NPC without a dialogDetectorCol assigned.");
-        }
+        if (isTalkable && !dialogDetectorCol) Debug.LogWarning($"{name}: Talkable NPC without a dialogDetectorCol assigned.");
+        if (isTalkable && !dialogueAnchor) Debug.LogWarning($"{name}: Talkable NPC without a dialogueAnchor assigned.");
+        if (isTalkable && !playerDialAnchor) Debug.LogWarning($"{name}: Talkable NPC without a playerDialAnchor assigned.");
     }
 
     public bool IsPlayerInRange { get => isPlayerInRange; set => isPlayerInRange = value; }
